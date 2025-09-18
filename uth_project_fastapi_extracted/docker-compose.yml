@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: uth_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: uth_user
+      POSTGRES_PASSWORD: uth_password
+      POSTGRES_DB: uth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: uth_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres+psycopg2://uth_user:uth_password@db:5432/uth_db
+    ports:
+      - "8000:8000"
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
